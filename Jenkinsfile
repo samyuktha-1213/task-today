@@ -2,9 +2,6 @@ pipeline {
     agent any
 
     environment {
-        // ✅ Use the exact Jenkins credentials ID for your DockerHub token
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-token')
-        // ✅ Your correct DockerHub username
         DOCKER_IMAGE = "samyuktha2696/flask-app"
     }
 
@@ -21,7 +18,6 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 echo '⚙️ Installing Python dependencies...'
-                // ✅ Use . instead of source (works on both bash & sh)
                 sh '''
                 python3 -m venv venv
                 . venv/bin/activate
@@ -44,7 +40,6 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 echo '🐳 Building Docker image...'
-                // ✅ Make sure Jenkins user has docker group access
                 sh '''
                 docker build -t $DOCKER_IMAGE:latest .
                 '''
@@ -54,11 +49,12 @@ pipeline {
         stage('Push to DockerHub') {
             steps {
                 echo '🚀 Logging in and pushing Docker image...'
-                // ✅ Corrected username here
-                sh '''
-                echo $DOCKERHUB_CREDENTIALS | docker login -u samyuktha2696 --password-stdin
-                docker push $DOCKER_IMAGE:latest
-                '''
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-token', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh '''
+                    echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                    docker push $DOCKER_IMAGE:latest
+                    '''
+                }
             }
         }
 
