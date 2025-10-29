@@ -20,7 +20,7 @@ pipeline {
                 echo 'Installing Python dependencies...'
                 sh '''
                 python3 -m venv venv
-                source venv/bin/activate
+                . venv/bin/activate
                 pip install -r requirements.txt
                 '''
             }
@@ -30,7 +30,7 @@ pipeline {
             steps {
                 echo 'Running tests...'
                 sh '''
-                source venv/bin/activate
+                . venv/bin/activate
                 pytest || true
                 '''
             }
@@ -75,3 +75,4 @@ pipeline {
         }
     }
 }
+
