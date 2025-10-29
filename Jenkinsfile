@@ -2,14 +2,17 @@ pipeline {
     agent any
 
     environment {
+        // ✅ Use the exact Jenkins credentials ID for your DockerHub token
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-token')
-        DOCKER_IMAGE = "samyuktha-1213/flask-app"
+        // ✅ Your correct DockerHub username
+        DOCKER_IMAGE = "samyuktha2696/flask-app"
     }
 
     stages {
+
         stage('Checkout') {
             steps {
-                echo 'Cloning the repository...'
+                echo '📦 Cloning the repository...'
                 git branch: 'main',
                     url: 'https://github.com/samyuktha-1213/task-today.git'
             }
@@ -17,10 +20,12 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                echo 'Installing Python dependencies...'
+                echo '⚙️ Installing Python dependencies...'
+                // ✅ Use . instead of source (works on both bash & sh)
                 sh '''
                 python3 -m venv venv
                 . venv/bin/activate
+                pip install --upgrade pip
                 pip install -r requirements.txt
                 '''
             }
@@ -28,7 +33,7 @@ pipeline {
 
         stage('Run Tests') {
             steps {
-                echo 'Running tests...'
+                echo '🧪 Running tests...'
                 sh '''
                 . venv/bin/activate
                 pytest || true
@@ -38,7 +43,8 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                echo 'Building Docker image...'
+                echo '🐳 Building Docker image...'
+                // ✅ Make sure Jenkins user has docker group access
                 sh '''
                 docker build -t $DOCKER_IMAGE:latest .
                 '''
@@ -47,9 +53,10 @@ pipeline {
 
         stage('Push to DockerHub') {
             steps {
-                echo 'Pushing Docker image to DockerHub...'
+                echo '🚀 Logging in and pushing Docker image...'
+                // ✅ Corrected username here
                 sh '''
-                echo $DOCKERHUB_CREDENTIALS | docker login -u samyuktha-1213 --password-stdin
+                echo $DOCKERHUB_CREDENTIALS | docker login -u samyuktha2696 --password-stdin
                 docker push $DOCKER_IMAGE:latest
                 '''
             }
@@ -57,7 +64,7 @@ pipeline {
 
         stage('Deploy Container') {
             steps {
-                echo 'Deploying container locally...'
+                echo '🚢 Deploying container locally...'
                 sh '''
                 docker rm -f flask-container || true
                 docker run -d -p 5000:5000 --name flask-container $DOCKER_IMAGE:latest
